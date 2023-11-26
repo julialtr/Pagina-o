@@ -10,14 +10,16 @@ A páginação é uma técnica de gerência de memória que divide parte da mem�
 
 1 - Download e Instalação do Visual Studio Code: https://code.visualstudio.com/download
 
-2 - Download e Instalação do Phyton: https://repo.anaconda.com/archive/Anaconda3-2022.10-Windows-x86_64.exe
+2 - Download e Instalação do Anaconda: https://repo.anaconda.com/archive/Anaconda3-2022.10-Windows-x86_64.exe
 
-3 - Faça download zip do repositório do github
+3 - Instalação da extensão do Python dentro do Visual Studio Code
 
-4 - Extraia o arquivo .zip no diretório C:\
+4 - Download zip do repositório do github
 
-5 - Renomeie a pasta para Paginacao
+5 - Extraia o arquivo .zip no diretório _C:\_
 
-4 - Dentro do diretório, preencha o arquivo _entrada.json_ com as informações solicitadas
+6 - Renomeie a pasta para Paginacao
 
-5 - Abra o diretório clonado no Visual Studio Code e execute
+7 - Dentro do diretório, preencha o arquivo _entrada.json_ com as informações solicitadas
+
+8 - Abra o diretório clonado no Visual Studio Code e execute
