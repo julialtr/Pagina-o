@@ -16,7 +16,7 @@ A páginação é uma técnica de gerência de memória que divide parte da mem�
 
 4 - Download zip do repositório do github
 
-5 - Extraia o arquivo .zip no diretório _C:\_
+5 - Extraia o arquivo .zip no diretório C:\
 
 6 - Renomeie a pasta para Paginacao
 
