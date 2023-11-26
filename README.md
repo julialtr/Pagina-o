@@ -12,7 +12,7 @@ A páginação é uma técnica de gerência de memória que divide parte da mem�
 
 2 - Download e Instalação do Phyton: https://repo.anaconda.com/archive/Anaconda3-2022.10-Windows-x86_64.exe
 
-3 - Faça download do repositório do github
+3 - Faça download zip do repositório do github
 
 4 - Extraia o arquivo .zip no diretório C:\
 
