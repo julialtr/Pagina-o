@@ -12,8 +12,12 @@ A páginação é uma técnica de gerência de memória que divide parte da mem�
 
 2 - Download e Instalação do Phyton: https://repo.anaconda.com/archive/Anaconda3-2022.10-Windows-x86_64.exe
 
-3 - Clone o repositório x para o diretório C:\
+3 - Faça download do repositório do github
 
-4 - No diretório clonado, preencha o arquivo _entrada.json_ com as informações solicitadas
+4 - Extraia o arquivo .zip no diretório C:\
+
+5 - Renomeie a pasta para Paginacao
+
+4 - Dentro do diretório, preencha o arquivo _entrada.json_ com as informações solicitadas
 
 5 - Abra o diretório clonado no Visual Studio Code e execute
