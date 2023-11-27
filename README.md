@@ -4,7 +4,7 @@ Simulação de Paginação referente a disciplina de Sistemas Operacionais de Ci
 # Contexto
 A páginação é uma técnica de gerência de memória que divide parte da memória principal em blocos de tamanho fixo (páginas). A grande vantagem do uso da paginação é que ela permite a execução de mais programas, já que dividindo o programa em páginas, nem todas as páginas do programa precisam estar na memória principal durante a execução.
 
-![Inserir um título (3)](https://github.com/julialtr/Paginacao/assets/58483640/4b2e10a7-426b-413f-824b-44d1a0e666b6)
+![Inserir um título (4)](https://github.com/julialtr/Paginacao/assets/58483640/fcbc5559-d5b5-439c-9380-6700f1205a91)
 
 # Passo a passo para execução
 
