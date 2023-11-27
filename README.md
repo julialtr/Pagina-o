@@ -22,4 +22,4 @@ A páginação é uma técnica de gerência de memória que divide parte da mem�
 
 7 - Dentro do diretório, preencha o arquivo _entrada.json_ com as informações solicitadas
 
-8 - Abra o diretório clonado no Visual Studio Code e execute
+8 - Abra o diretório clonado no Visual Studio Code e execute (Run Python File in Dedicated Terminal)
