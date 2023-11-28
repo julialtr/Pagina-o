@@ -1,5 +1,6 @@
 # Paginação
 Simulação de Paginação referente a disciplina de Sistemas Operacionais de Ciências da Computação da Furb.
+Grupo: Bruna Lauschner, Julia Letícia Trapp e Pedro Henrique de Oliveira Cintra
 
 # Contexto
 A páginação é uma técnica de gerência de memória que divide parte da memória principal em blocos de tamanho fixo (páginas). A grande vantagem do uso da paginação é que ela permite a execução de mais programas, já que dividindo o programa em páginas, nem todas as páginas do programa precisam estar na memória principal durante a execução.
