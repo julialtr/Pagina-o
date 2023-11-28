@@ -1,0 +1,40 @@
+{
+	"tempoVisualizacao": 1,
+    "tamanhoDisco": 200,
+    "tamanhoArquivoPaginacao": 100,
+    "tamanhoPagina": 10,
+    "tamanhoRAM": 60,
+    "processos" :
+	[
+		{
+			"id": 1, 
+			"valor": 33640, 
+			"tamanho": 20
+		},
+		{
+			"id": 2, 
+			"valor": 74109, 
+			"tamanho": 30
+		},
+		{
+			"id": 3, 
+			"valor": 85416, 
+			"tamanho": 30
+		},
+		{
+			"id": 4, 
+			"valor": 61220, 
+			"tamanho": 10
+		},
+		{
+			"id": 5, 
+			"valor": 10454, 
+			"tamanho": 10
+		},
+		{
+			"id": 6, 
+			"valor": 25645, 
+			"tamanho": 50
+		}
+	]
+}
