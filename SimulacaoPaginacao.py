@@ -1,25 +1,23 @@
 # Imports
-from collections import deque
-
 import os
 import math
 import random
-from matplotlib.colors import ListedColormap
-import matplotlib.pyplot as plt
-from matplotlib import rc
-import pandas as pd
-import numpy as np
+import json
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
+from collections import deque
+from matplotlib.colors import ListedColormap
+from matplotlib import rc
+
 # Classes auxiliares
 class Pagina:
-    def __init__(self, id = 0, id_processo = 0, valor_processo = 0):
+    def __init__(self, id = 0, id_processo = 0, valor = 0):
         self.id = id
         self.id_processo = id_processo
-        self.valor_processo = valor_processo
+        self.valor = valor
 
 class PaginaTabela: 
     def __init__(self, id_pagina, ponteiro_disco = -1, bit_validez = False, bit_modificacao = True):
@@ -29,39 +27,97 @@ class PaginaTabela:
         self.bit_modificacao = bit_modificacao
 
 class Processo:
-    def __init__(self, id = 0, valor = 0, tamanho = 0):
+    def __init__(self, id = 0, valor_inicial = 0, tamanho = 0):
         self.id = id
-        self.valor = valor
+        self.valor_inicial = valor_inicial
         self.tamanho = tamanho
 
-# TO DO -> Leitura, Validações
-# Limitar entrada para 6 processos
-# Arquivo de Input
-    # tempoVisualizacao: 0
-    # tamanhoDisco: 0
-    # tamanhoRAM: 0
-    # tamanhoPaginacao: 0
-    # tamanhoPagina: 0
-    # processos : [ processo: {id: 0, valor: 54486, tamanho (bytes): 20} ]       # talvez ver para fazer ter vários valores, aí fica mais fácil de entender a divisão em páginas 
+# Variáveis auxiliares
+processos_input = []
 
-def le_arquivo_input():
-    pass
-
-processos_input = [
-    Processo(5, 10454, 100),
-    Processo(6, 25645, 50),
-    Processo(1, 33640, 20),
-    Processo(2, 74109, 30),
-    Processo(3, 85416, 110),
-    Processo(4, 61220, 70) ]
-
-tempoVisualizacao = 1 #temp
-tam_disco = 300 #temp
-tam_paginacao = 70 #temp
-tam_pagina = 10 #temp
-tam_ram = 100 #temp
+tempo_visualizacao = 0
+tam_disco = 0
+tam_paginacao = 0
+tam_pagina = 0
+tam_ram = 0
 
 disco_esta_preenchido = False
+memoria_RAM = deque(maxlen=0)
+qtd_paginas_ram = 0
+
+# Leitura do arquivo de configuração JSON
+def valida_dados_input():
+    if tempo_visualizacao <= 0:
+        print("É necessário informar o tempo de visualização\n")
+        return False
+    
+    if tam_disco <= 0:
+        print("É necessário informar o tamanho do disco\n")
+        return False
+    
+    if tam_paginacao <= 0:
+        print("É necessário informar o tamanho da paginação\n")
+        return False
+    
+    if tam_pagina <= 0:
+        print("É necessário informar o tamanho da página\n")
+        return False
+    
+    if tam_ram <= 0:
+        print("É necessário informar o tamanho da memória RAM\n")
+        return False
+
+    if tam_paginacao > tam_disco:
+        print("O tamanho do arquivo de paginação não pode ser maior que o tamanho do disco\n")
+        return False
+    
+    if tam_pagina > tam_paginacao:
+        print("O tamanho da página não pode ser maior que o tamanho do arquivo de paginação\n")
+        return False
+    
+    if tam_pagina > tam_ram:
+        print("O tamanho da página não pode ser maior que o tamanho da memória RAM\n")
+        return False
+    
+    if len(processos_input) > 6 or len(processos_input) == 0:
+        print("São aceitos de 1-6 processos por causa da disponibilidade de cores para cada\n")
+        return False
+    
+    for x in range(len(processos_input)):
+        if processos_input[x].id <= 0:
+            print("O id do processo deve ser maior que 0\n")
+            return False
+        
+        if processos_input[x].tamanho <= 0:
+            print("O tamanho do processo deve ser maior que 0\n")
+            return False
+    
+    return True
+
+def le_arquivo_input(caminho):
+    global tempo_visualizacao
+    global tam_disco
+    global tam_paginacao
+    global tam_pagina
+    global tam_ram
+
+    dados_input = {}
+
+    with open(caminho, encoding="utf-8") as arquivo:
+        dados_input = json.load(arquivo)
+    
+    tempo_visualizacao = dados_input['tempoVisualizacao']
+    tam_disco = dados_input['tamanhoDisco']
+    tam_paginacao = dados_input['tamanhoArquivoPaginacao']
+    tam_pagina = dados_input['tamanhoPagina']
+    tam_ram = dados_input['tamanhoRAM']
+
+    for processo in dados_input['processos']:
+        processo_atual = Processo(processo['id'], processo['valor'], processo['tamanho'])
+        processos_input.append(processo_atual)
+
+    if valida_dados_input() == False:
+        return False
 
 # Conversão dos processos do arquivo de input em páginas (Memória Virtual) e inicialização das ETP
 memoria_virtual = []
@@ -76,7 +132,7 @@ def inicializa_memoria_virtual_etps():
         etps = []
 
         for i in range(qtds_paginas):
-            memoria_virtual_aux.append(Pagina(i + 1, processo.id, processo.valor))
+            memoria_virtual_aux.append(Pagina(i + 1, processo.id, processo.valor_inicial + i))
             etps.append(PaginaTabela(i + 1))
 
         lista_etps_por_processo.append([processo.id, etps])
@@ -90,10 +146,6 @@ def cria_arquivo_disco():
     with open(file_path, "wb") as arquivo_disco:
 	    arquivo_disco.write(bytes(tam_disco))
 
-# Criação da estrutura que simula a Memória Principal (Memória RAM)
-qtd_paginas_ram = tam_ram // tam_pagina
-memoria_RAM = deque(maxlen=qtd_paginas_ram)  
-
 # Leitura/Gravação na Memória Principal (Memória RAM)
 def ler_RAM(pagina_etp):
     if not(pagina_etp.bit_validez):
@@ -106,7 +158,7 @@ def grava_RAM(pagina_nova, pagina_etp):
 
     if len(memoria_RAM) == qtd_paginas_ram:
         pagina_removida = memoria_RAM.popleft() # FIFO
-        print(f"Página {pagina_removida.id} do processo {pagina_removida.id_processo} | {pagina_removida.valor_processo} foi removida da Memória Principal (Memória RAM) \n")
+        print(f"Página {pagina_removida.id} do processo {pagina_removida.id_processo} | {pagina_removida.valor} foi removida da Memória Principal (Memória RAM) \n")
 
     memoria_RAM.append(pagina_nova)
     pagina_etp.bit_validez = True
@@ -132,17 +184,19 @@ def ler_disco(pagina_etp):
         pipe_character = "|"
         pipe_bytes = pipe_character.encode('utf-8')
 
-        id_valor = data.split(pipe_bytes) # ID | VALOR
-        id_encontrado = int(id_valor[0])
-        valor_encontrado = int(id_valor[1].decode('utf-8').rstrip('\x00'))
+        valores = data.split(pipe_bytes) # ID_PAGINA | ID_PROCESSO | VALOR
+        id_pagina = int(valores[0])
+        id_processo = int(valores[1])
+        valor = int(valores[2].decode('utf-8').rstrip('\x00'))
 
-        return Pagina(pagina_etp.id_pagina, id_encontrado, valor_encontrado)
+        return Pagina(id_pagina, id_processo, valor)
 
 def grava_disco(pagina_removida, pagina_etp):
+    data_gravar = f"{pagina_removida.id}|{pagina_removida.id_processo}|{pagina_removida.valor}"
+    data_bytes = data_gravar.encode('utf-8')
+
     with open(file_path, 'rb+') as arquivo_disco:
         if pagina_etp.ponteiro_disco != -1:
-            data_gravar = f"{pagina_removida.id_processo}|{pagina_removida.valor_processo}"
-            data_bytes = data_gravar.encode('utf-8')
             arquivo_disco.seek(pagina_etp.ponteiro_disco)
             arquivo_disco.write(data_bytes)
         else:
@@ -153,8 +207,6 @@ def grava_disco(pagina_removida, pagina_etp):
                 data = arquivo_disco.read(tam_pagina)
 
                 if all(byte == 0x00 for byte in data):
-                    data_gravar = f"{pagina_removida.id_processo}|{pagina_removida.valor_processo}"
-                    data_bytes = data_gravar.encode('utf-8')
                     arquivo_disco.seek(qtd_paginas_lidas)
                     arquivo_disco.write(data_bytes)
 
@@ -163,18 +215,16 @@ def grava_disco(pagina_removida, pagina_etp):
 
                 qtd_paginas_lidas += tam_pagina
         
-            altera_disco(pagina_removida.id_processo, pagina_etp.id_pagina)
-
-        #novo_processo = Processo(processo.id, processo.valor, 0)
-        #altera_processo_lista(novo_processo)
+    altera_disco(pagina_removida.id_processo, pagina_etp.id_pagina)
 
 # Montagem da visualização gráfica
-visualizacao_cores = {} # chave: id_processo e id_pagina | valor: cor
+visualizacao_cores = {} # CHAVE: id_processo e id_pagina | VALOR: cor
 visualizacao_ram = [] # matriz com cor a partir do id_processo e id_pagina
 visualizacao_disco = [] # matriz com cor a partir do id_processo e id_pagina
 paleta_cores = [] # paleta de cores disponíveis de acordo com a quantidade de processos e de suas respectivas páginas
 
 qtd_cores = 2
+fig, axs = plt.subplots(1, 2, figsize=(16, 8))
 
 def gera_paleta():
     cores_disponiveis = ['Blues', 'Greens', 'Oranges', 'Reds', 'Purples', 'PuRd']
@@ -259,8 +309,6 @@ def preenche_dados_visualizacao_disco():
 
     preenche_dados_visualizacao(qtd_colunas, qtd_celulas, False)
 
-fig, axs = plt.subplots(1, 2, figsize=(16, 8))
-
 def renderiza(inicial):
     renderiza_RAM(inicial)
     renderiza_disco(inicial)
@@ -268,8 +316,35 @@ def renderiza(inicial):
     plt.tight_layout()
 
     plt.show(block=False)
-    plt.pause(tempoVisualizacao)
+    plt.pause(tempo_visualizacao)
 
+def encontra_valor_ram_processo_pagina(id_processo, id_pagina):
+    for i in range(len(memoria_RAM)):
+        processo = memoria_RAM[i]
+
+        if processo.id == id_pagina and processo.id_processo == id_processo:
+            return processo.valor
+    
+    return 0
+
+def encontra_valor_disco_processo_pagina(id_processo, id_pagina):
+    pagina_etp = encontra_pagina_etp(id_processo, id_pagina)
+
+    if pagina_etp.ponteiro_disco == -1:
+        return 0
+    
+    with open(file_path, 'rb+') as arquivo_disco:
+        arquivo_disco.seek(pagina_etp.ponteiro_disco)
+        data = arquivo_disco.read(tam_pagina)
+
+        pipe_character = "|"
+        pipe_bytes = pipe_character.encode('utf-8')
+
+        valores = data.split(pipe_bytes) # ID_PAGINA | ID_PROCESSO | VALOR
+        valor = int(valores[2].decode('utf-8').rstrip('\x00'))
+
+        return valor
+    
 def renderiza_RAM(inicial):
     ax = axs[0]
 
@@ -283,15 +358,17 @@ def renderiza_RAM(inicial):
     for i in range(len(visualizacao_ram)):
         for j in range(len(visualizacao_ram[0])):
             chave = list(visualizacao_cores.keys())[list(visualizacao_cores.values()).index(visualizacao_ram[i][j])]
-            valor = visualizacao_cores[chave]
+            cor = visualizacao_cores[chave]
 
             id_processo = chave[0]
             id_pagina = chave[1]
 
             if (id_processo == -1 or id_processo == 0) and (id_pagina == -1 or id_pagina == 0):
                 continue
+            
+            valor = encontra_valor_ram_processo_pagina(id_processo, id_pagina)
 
-            texto = f"ID: {id_pagina}\nProcesso: {id_processo}\nCor: {valor}"
+            texto = f"ID: {id_pagina}\nProcesso: {id_processo}\nValor:{valor}\nCor: {cor}"
             ax.text(j + 0.5, i + 0.5, texto, ha='center', va='center', fontsize=10, color='black')
 
     ax.set_title("Memória Principal (Memória RAM)")
@@ -309,7 +386,7 @@ def renderiza_disco(inicial):
     for i in range(len(visualizacao_disco)):
         for j in range(len(visualizacao_disco[0])):
             chave = list(visualizacao_cores.keys())[list(visualizacao_cores.values()).index(visualizacao_disco[i][j])]
-            valor = visualizacao_cores[chave]
+            cor = visualizacao_cores[chave]
 
             id_processo = chave[0]
             id_pagina = chave[1]
@@ -317,7 +394,9 @@ def renderiza_disco(inicial):
             if (id_processo == -1 or id_processo == 0) and (id_pagina == -1 or id_pagina == 0):
                 continue
 
-            texto = f"ID: {id_pagina}\nProcesso: {id_processo}\nCor: {valor}"
+            valor = encontra_valor_disco_processo_pagina(id_processo, id_pagina)
+
+            texto = f"ID: {id_pagina}\nProcesso: {id_processo}\nValor:{valor}\nCor: {cor}"
             ax.text(j + 0.5, i + 0.5, texto, ha='center', va='center', fontsize=10, color='black')
 
     ax.set_title("Memória Secundária (Disco)")
@@ -378,26 +457,25 @@ def altera_disco(id_processo, id_pagina):
     
     renderiza(False)
 
-# Rotina que atualiza randomicamente valores do processo da página
-def altera_processo(id_processo):
+# Rotina que atualiza randomicamente valores da página do processo
+def altera_processo():
     altera_valor = bool(random.randint(0, 1))
     if not (altera_valor):
         return
     
-    novo_valor = random.randint(10000, 99999)
-    print(f"Alterando valor da página atual para {novo_valor}\n")
-    
-    for i in range(len(memoria_virtual)):
-        if id_processo == memoria_virtual[i].id:
-            try:    
-                posicao = memoria_RAM.index(memoria_virtual[i])
-                memoria_RAM[posicao].valor_processo = novo_valor
-            except:
-                break
+    if memoria_RAM:
+        novo_valor = random.randint(10000, 99999)
+        idx_aleatorio = random.randint(0, len(memoria_RAM) - 1)
 
-            memoria_virtual[i].valor_processo = novo_valor
+        print("\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *")
+        print(f"Alterando valor da página -> ID: {memoria_RAM[idx_aleatorio].id} // Processo: {memoria_RAM[idx_aleatorio].id_processo} de {memoria_RAM[idx_aleatorio].valor} para {novo_valor}")
+        print("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n")
 
-            break
+        memoria_RAM[idx_aleatorio].valor = novo_valor
+        pagina_etp_atual = encontra_pagina_etp(memoria_RAM[idx_aleatorio].id_processo, memoria_RAM[idx_aleatorio].id)
+        pagina_etp_atual.bit_modificacao = True
+
+        renderiza(False)
 
 def encontra_pagina_etp(id_processo, id_pagina):
     for etp_processo in lista_etps_por_processo:
@@ -407,9 +485,17 @@ def encontra_pagina_etp(id_processo, id_pagina):
 # Execução
 def inicializa_sistema():
     # Parte lógica
-    le_arquivo_input()
+    if le_arquivo_input("C:\\Paginacao\\entrada.json") == False:
+        return False
+
     cria_arquivo_disco()
     inicializa_memoria_virtual_etps()
+
+    # Criação da estrutura que simula a Memória Principal (Memória RAM)
+    global memoria_RAM
+    global qtd_paginas_ram
+    qtd_paginas_ram = tam_ram // tam_pagina
+    memoria_RAM = deque(maxlen=qtd_paginas_ram)
 
     # Parte gráfica
     gera_paleta()
@@ -420,37 +506,31 @@ def inicializa_sistema():
 
     os.system('cls')
 
-inicializa_sistema()
+    return True
 
-for pagina in memoria_virtual:
-    if len(memoria_RAM) == qtd_paginas_ram and disco_esta_preenchido:
-        print(f"Não há mais espaço disponível para paginação\n")
-        break
+if inicializa_sistema() == True:
+    for pagina in memoria_virtual:
+        if len(memoria_RAM) == qtd_paginas_ram and disco_esta_preenchido:
+            print(f"Não há mais espaço disponível para paginação\n")
+            break
 
-    print(f"Página atual -> ID: {pagina.id} // Processo: {pagina.id_processo} | {pagina.valor_processo} \n")
+        altera_processo()
 
-    pagina_etp = encontra_pagina_etp(pagina.id_processo, pagina.id)
-    
-    if ler_RAM(pagina_etp):
-        print(f"Encontrada página atual na Memória Principal (Memória RAM)\n")
+        print(f"Página atual -> ID: {pagina.id} // Processo: {pagina.id_processo} | {pagina.valor} \n")
+
+        pagina_etp = encontra_pagina_etp(pagina.id_processo, pagina.id)
+
+        if ler_RAM(pagina_etp):
+            print(f"Encontrada página atual na Memória Principal (Memória RAM)\n")
+            print("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+            continue
+
+        pagina_atualizada = ler_disco(pagina_etp)
+        print(f"Não foi encontrada a página atual na Memória Secundária (Disco)\n") if (pagina_atualizada == None) else print(f"Encontrada página atual na Memória Secundária (Disco)\n")
+
+        grava_RAM(pagina if (pagina_atualizada == None) else pagina_atualizada, pagina_etp)
+
         print("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-        #altera_processo(pagina.id_processo)
-        continue
-
-    pagina_atualizada = ler_disco(pagina_etp)
-    print(f"Não foi encontrada a página atual na Memória Secundária (Disco)\n") if (pagina_atualizada == None) else print(f"Encontrada página atual na Memória Secundária (Disco)\n")
-
-    grava_RAM(pagina if (pagina_atualizada == None) else pagina_atualizada, pagina_etp)
-
-    #altera_processo(pagina.id_processo)
-
-    print("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
 
 print("Simulação encerrada")
 plt.pause(10000)
-
-# O que falta:
-    # Pedro = CRIAR ARQUIVO DE INPUT para valores de disco, ram... (se invalido, randomizar os valores)
-    # Bruna = Thread que retira processos da RAM + alteraprocesso()
-    # Julia - Atualizar visualização quando são retirados processos da RAM
-    # Julia - Atualizar visualização quando são alterados processos da RAM
