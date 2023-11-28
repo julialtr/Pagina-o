@@ -1,5 +1,6 @@
 # Paginação
 Simulação de Paginação referente a disciplina de Sistemas Operacionais de Ciências da Computação da Furb.
+
 Grupo: Bruna Lauschner, Julia Letícia Trapp e Pedro Henrique de Oliveira Cintra
 
 # Contexto
